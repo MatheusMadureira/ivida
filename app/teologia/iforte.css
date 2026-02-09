@@ -1,0 +1,283 @@
+/**
+ * IFORTE Design System — escopo isolado (.iforte-scope)
+ * Não altera Header/Nav. Usar apenas no conteúdo das páginas /teologia/*
+ */
+
+.iforte-scope {
+  /* Tokens de cor */
+  --iforte-bg: #0B0B0D;
+  --iforte-surface: #151518;
+  --iforte-text: #F5F5F7;
+  --iforte-text-muted: rgba(245, 245, 247, 0.72);
+  --iforte-border: rgba(255, 255, 255, 0.08);
+  --iforte-blue: #1D4ED8;
+  --iforte-blue-hover: #3B82F6;
+  --iforte-border-blue: rgba(59, 130, 246, 0.35);
+  --iforte-glow: rgba(59, 130, 246, 0.15);
+
+  background-color: var(--iforte-bg);
+  color: var(--iforte-text);
+}
+
+/* Transição padrão IFORTE */
+.iforte-scope .iforte-transition {
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+/* ----- Hero: radial que se dissolve (sem corte) ----- */
+.iforte-hero {
+  position: relative;
+  background:
+    radial-gradient(
+      circle at top center,
+      rgba(29, 78, 216, 0.05) 0%,
+      rgba(29, 78, 216, 0.02) 35%,
+      transparent 65%
+    ),
+    #0B0B0D;
+}
+
+/* ----- Botões ----- */
+.iforte-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #fff;
+  background-color: var(--iforte-blue);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.25s ease, transform 0.2s ease;
+}
+.iforte-btn-primary:hover {
+  background-color: var(--iforte-blue-hover);
+  box-shadow: 0 4px 20px var(--iforte-glow);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .iforte-btn-primary:hover {
+    transform: translateY(-1px);
+  }
+}
+.iforte-btn-primary:focus {
+  outline: none;
+}
+.iforte-btn-primary:focus-visible {
+  box-shadow: 0 0 0 2px var(--iforte-bg), 0 0 0 4px var(--iforte-blue-hover);
+}
+
+.iforte-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--iforte-blue-hover);
+  background-color: transparent;
+  border: 1px solid var(--iforte-border-blue);
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.25s ease, transform 0.2s ease;
+}
+.iforte-btn-secondary:hover {
+  background-color: var(--iforte-glow);
+  border-color: var(--iforte-blue-hover);
+  box-shadow: 0 2px 12px var(--iforte-glow);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .iforte-btn-secondary:hover {
+    transform: translateY(-1px);
+  }
+}
+.iforte-btn-secondary:focus {
+  outline: none;
+}
+.iforte-btn-secondary:focus-visible {
+  box-shadow: 0 0 0 2px var(--iforte-bg), 0 0 0 4px var(--iforte-blue-hover);
+}
+
+/* ----- Cards informativos ----- */
+.iforte-card {
+  background-color: var(--iforte-surface);
+  border: 1px solid var(--iforte-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+.iforte-card:hover {
+  border-color: var(--iforte-border-blue);
+  box-shadow: 0 8px 32px var(--iforte-glow);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .iforte-card:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* Label em caps (informações do curso) */
+.iforte-label-caps {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--iforte-text-muted);
+}
+
+/* Ícone azul IFORTE */
+.iforte-icon {
+  color: var(--iforte-blue);
+  flex-shrink: 0;
+}
+
+/* ----- Bloco editorial "O curso" — barra vertical azul ----- */
+.iforte-editorial-block {
+  position: relative;
+  padding-left: 1rem;
+  border-left: 3px solid var(--iforte-border-blue);
+}
+.iforte-editorial-block .iforte-editorial-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--iforte-text);
+  letter-spacing: -0.02em;
+}
+@media (min-width: 640px) {
+  .iforte-editorial-block .iforte-editorial-title {
+    font-size: 1.5rem;
+  }
+}
+
+/* ----- Pilares (Destaques) ----- */
+.iforte-pilar {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.iforte-pilar-icon {
+  color: var(--iforte-blue);
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+.iforte-pilar-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--iforte-text);
+}
+.iforte-pilar-text {
+  font-size: 0.9375rem;
+  color: var(--iforte-text-muted);
+  line-height: 1.5;
+}
+
+/* ----- Pills (grade curricular) ----- */
+.iforte-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--iforte-text-muted);
+  background-color: transparent;
+  border: 1px solid var(--iforte-border);
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.iforte-pill:hover {
+  background-color: var(--iforte-glow);
+  border-color: var(--iforte-border-blue);
+  color: var(--iforte-text);
+}
+.iforte-pill:focus {
+  outline: none;
+}
+.iforte-pill:focus-visible {
+  box-shadow: 0 0 0 2px var(--iforte-bg), 0 0 0 4px var(--iforte-blue-hover);
+}
+
+/* ----- Link com underline animado ----- */
+.iforte-link {
+  color: var(--iforte-blue-hover);
+  font-weight: 500;
+  text-underline-offset: 0.2em;
+  transition: color 0.2s ease;
+  position: relative;
+}
+.iforte-link:hover {
+  color: var(--iforte-blue);
+}
+.iforte-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 1px;
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.25s ease;
+}
+.iforte-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+.iforte-link:focus {
+  outline: none;
+}
+.iforte-link:focus-visible {
+  box-shadow: 0 0 0 2px var(--iforte-bg), 0 0 0 4px var(--iforte-blue-hover);
+  border-radius: 4px;
+}
+
+/* ----- Card "Onde fica" (maior, confiável) ----- */
+.iforte-card-location {
+  background-color: var(--iforte-surface);
+  border: 1px solid var(--iforte-border);
+  border-radius: 1rem;
+  padding: 1.75rem;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.iforte-card-location:hover {
+  border-color: var(--iforte-border-blue);
+  box-shadow: 0 8px 32px var(--iforte-glow);
+}
+@media (min-width: 640px) {
+  .iforte-card-location {
+    padding: 2rem;
+  }
+}
+
+/* ----- CTA final (box) ----- */
+.iforte-cta-box {
+  background-color: rgba(21, 21, 24, 0.8);
+  border: 1px solid var(--iforte-border-blue);
+  border-radius: 1rem;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+@media (min-width: 640px) {
+  .iforte-cta-box {
+    padding: 3rem 2rem;
+  }
+}
+
+/* ----- Modal grade (dentro do scope) ----- */
+.iforte-modal-surface {
+  background-color: var(--iforte-surface);
+  border: 1px solid var(--iforte-border);
+  border-radius: 1rem;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+}
+
+/* Divisor sutil */
+.iforte-divider {
+  height: 1px;
+  width: 4rem;
+  background: linear-gradient(90deg, var(--iforte-border-blue), transparent);
+  border-radius: 9999px;
+}
