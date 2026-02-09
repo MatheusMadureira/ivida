@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { LogoutButton, LogoutButtonDrawer } from "@/components/LogoutButton";
 
 const linkBase =
   "px-3 py-2 text-[0.97rem] rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-focus focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212]";
@@ -179,7 +180,7 @@ export function SiteHeader({
             {navLink("/ministerios", "Ministérios", pathname)}
             {navLink("/contato", "Contato", pathname)}
           </nav>
-          <div className="flex justify-end min-w-0">{right ?? null}</div>
+          <div className="flex justify-end min-w-0">{right ?? <LogoutButton />}</div>
         </div>
       </header>
 
@@ -246,6 +247,9 @@ export function SiteHeader({
             {drawerLink("/teologia/inscricao", "Inscrição", pathname, closeMenu)}
             {drawerLink("/ministerios", "Ministérios", pathname, closeMenu)}
             {drawerLink("/contato", "Contato", pathname, closeMenu)}
+            <div className="mt-4 pt-4 border-t border-white/10">
+              <LogoutButtonDrawer onClose={closeMenu} />
+            </div>
           </nav>
         </div>
       </div>

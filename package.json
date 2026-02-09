@@ -6,13 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:push": "supabase db push --linked",
+    "supabase:link": "supabase link"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.95.3",
     "@vercel/blob": "^2.2.0",
     "bcryptjs": "^2.4.3",
     "jose": "^5.2.0",
-    "mongodb": "^6.21.0",
     "next": "^14.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -25,6 +27,7 @@
     "@types/react-dom": "^18.2.0",
     "autoprefixer": "^10.4.0",
     "postcss": "^8.4.0",
+    "supabase": "^2.76.6",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.0.0"
   }

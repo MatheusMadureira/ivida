@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getUsersCollection } from "@/lib/db";
+import { createServiceRoleClient } from "@/lib/supabase/server";
 import { comparePassword } from "@/lib/auth";
 import {
   createSessionToken,
@@ -19,22 +19,22 @@ export async function POST(request: Request) {
       );
     }
 
-    const users = await getUsersCollection();
-    const user = await users.findOne({
-      email: email.trim().toLowerCase(),
-      status: "ACTIVE",
-    });
+    const supabase = createServiceRoleClient();
+    const { data: user, error } = await supabase
+      .from("profiles")
+      .select("id, name, email, password_hash")
+      .eq("email", email.trim().toLowerCase())
+      .eq("status", "ACTIVE")
+      .single();
 
-    if (!user) {
+    if (error || !user) {
       return NextResponse.json(
         { error: "E-mail ou senha incorretos." },
         { status: 401 }
       );
     }
 
-    const passwordHash = user.passwordHash as string;
-    const valid = await comparePassword(password, passwordHash);
-
+    const valid = await comparePassword(password, user.password_hash);
     if (!valid) {
       return NextResponse.json(
         { error: "E-mail ou senha incorretos." },
@@ -42,15 +42,21 @@ export async function POST(request: Request) {
       );
     }
 
+    const now = new Date().toISOString();
+    await supabase
+      .from("profiles")
+      .update({ last_login_at: now, updated_at: now })
+      .eq("id", user.id);
+
     const token = await createSessionToken({
-      sub: String(user._id),
-      email: user.email as string,
+      sub: user.id,
+      email: user.email,
     });
 
     const res = NextResponse.json({
       success: true,
       user: {
-        id: user._id,
+        id: user.id,
         name: user.name,
         email: user.email,
       },

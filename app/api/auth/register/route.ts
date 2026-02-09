@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { getUsersCollection } from "@/lib/db";
+import { createServiceRoleClient } from "@/lib/supabase/server";
 import {
   hashPassword,
   generateResetCode,
   hashResetCode,
   getCpfHash,
 } from "@/lib/auth";
-import type { User } from "@/types/user";
+import type { ProfileInsert } from "@/types/user";
 
 export async function POST(request: Request) {
   try {
@@ -25,9 +25,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const users = await getUsersCollection();
+    const supabase = createServiceRoleClient();
+    const emailNorm = email.trim().toLowerCase();
 
-    const existing = await users.findOne({ email: email.trim().toLowerCase() });
+    const { data: existing } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("email", emailNorm)
+      .single();
+
     if (existing) {
       return NextResponse.json(
         { error: "Já existe uma conta com este e-mail." },
@@ -39,28 +45,34 @@ export async function POST(request: Request) {
     const resetCodePlain = generateResetCode();
     const passwordResetCodeHash = await hashResetCode(resetCodePlain);
 
-    const now = new Date();
-    const newUser: User = {
+    const now = new Date().toISOString();
+    const newProfile: ProfileInsert = {
       name: name.trim(),
-      email: email.trim().toLowerCase(),
-      ...(cpf ? { cpfHash: getCpfHash(String(cpf).replace(/\D/g, "")) } : {}),
-      passwordHash,
+      email: emailNorm,
+      cpf_hash: cpf ? getCpfHash(String(cpf).replace(/\D/g, "")) : null,
+      password_hash: passwordHash,
       roles: [],
       status: "ACTIVE",
-      profile: { photoUrl: null },
-      security: {
-        emailVerified: false,
-        lastPasswordChange: now,
-        passwordResetCode: passwordResetCodeHash,
-      },
-      timestamps: {
-        createdAt: now,
-        updatedAt: now,
-        lastLoginAt: null,
-      },
+      photo_url: null,
+      email_verified: false,
+      last_password_change: now,
+      password_reset_code: passwordResetCodeHash,
+      created_at: now,
+      updated_at: now,
+      last_login_at: null,
     };
 
-    await users.insertOne(newUser);
+    const { error: insertError } = await supabase
+      .from("profiles")
+      .insert(newProfile);
+
+    if (insertError) {
+      console.error("Erro no registro:", insertError);
+      return NextResponse.json(
+        { error: "Erro ao criar conta. Tente novamente." },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,

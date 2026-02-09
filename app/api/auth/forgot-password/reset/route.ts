@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getUsersCollection } from "@/lib/db";
+import { createServiceRoleClient } from "@/lib/supabase/server";
 import { compareResetCode, hashPassword } from "@/lib/auth";
 
 export async function POST(request: Request) {
@@ -18,22 +18,22 @@ export async function POST(request: Request) {
       );
     }
 
-    const users = await getUsersCollection();
-    const user = await users.findOne({
-      email: email.trim().toLowerCase(),
-      status: "ACTIVE",
-    });
+    const supabase = createServiceRoleClient();
+    const { data: user, error: fetchError } = await supabase
+      .from("profiles")
+      .select("id, password_reset_code")
+      .eq("email", email.trim().toLowerCase())
+      .eq("status", "ACTIVE")
+      .single();
 
-    if (!user) {
+    if (fetchError || !user) {
       return NextResponse.json(
         { error: "Dados inválidos. Refaça a validação." },
         { status: 401 }
       );
     }
 
-    const security = user.security as { passwordResetCode?: string | null } | undefined;
-    const resetCodeHash = security?.passwordResetCode;
-    if (!resetCodeHash) {
+    if (!user.password_reset_code) {
       return NextResponse.json(
         { error: "Dados inválidos. Refaça a validação." },
         { status: 401 }
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 
     const codeValid = await compareResetCode(
       codigoRestauracao.trim(),
-      resetCodeHash
+      user.password_reset_code
     );
     if (!codeValid) {
       return NextResponse.json(
@@ -52,19 +52,25 @@ export async function POST(request: Request) {
     }
 
     const passwordHash = await hashPassword(newPassword);
-    const now = new Date();
+    const now = new Date().toISOString();
 
-    await users.updateOne(
-      { _id: user._id },
-      {
-        $set: {
-          passwordHash,
-          "security.passwordResetCode": null,
-          "security.lastPasswordChange": now,
-          "timestamps.updatedAt": now,
-        },
-      }
-    );
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({
+        password_hash: passwordHash,
+        password_reset_code: null,
+        last_password_change: now,
+        updated_at: now,
+      })
+      .eq("id", user.id);
+
+    if (updateError) {
+      console.error("Erro ao resetar senha:", updateError);
+      return NextResponse.json(
+        { error: "Erro ao alterar senha. Tente novamente." },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,

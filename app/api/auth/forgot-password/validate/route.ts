@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getUsersCollection } from "@/lib/db";
+import { createServiceRoleClient } from "@/lib/supabase/server";
 import { getCpfHash, compareResetCode } from "@/lib/auth";
 
 export async function POST(request: Request) {
@@ -18,22 +18,24 @@ export async function POST(request: Request) {
       );
     }
 
-    const users = await getUsersCollection();
-    const user = await users.findOne({
-      email: email.trim().toLowerCase(),
-      status: "ACTIVE",
-    });
+    const supabase = createServiceRoleClient();
+    const { data: user, error } = await supabase
+      .from("profiles")
+      .select("id, cpf_hash, password_reset_code")
+      .eq("email", email.trim().toLowerCase())
+      .eq("status", "ACTIVE")
+      .single();
 
-    if (!user) {
+    if (error || !user) {
       return NextResponse.json(
         { error: "E-mail, CPF ou código não conferem." },
         { status: 401 }
       );
     }
 
-    const cpfNormalized = String(cpf).replace(/\D/g, "");
-    const cpfHashStored = user.cpfHash as string | undefined;
+    const cpfHashStored = user.cpf_hash;
     if (cpfHashStored) {
+      const cpfNormalized = String(cpf).replace(/\D/g, "");
       const cpfHashProvided = getCpfHash(cpfNormalized);
       if (cpfHashProvided !== cpfHashStored) {
         return NextResponse.json(
@@ -43,8 +45,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const security = user.security as { passwordResetCode?: string | null } | undefined;
-    const resetCodeHash = security?.passwordResetCode;
+    const resetCodeHash = user.password_reset_code;
     if (!resetCodeHash) {
       return NextResponse.json(
         { error: "E-mail, CPF ou código não conferem." },

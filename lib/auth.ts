@@ -4,7 +4,7 @@ import crypto from "crypto";
 const SALT_ROUNDS = 10;
 
 const CPF_HASH_SECRET =
-  process.env.CPF_HASH_SECRET || process.env.MONGO_URI || "cpf-hash-fallback";
+  process.env.CPF_HASH_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "cpf-hash-fallback";
 
 /** Normaliza CPF (só dígitos, 11 chars) e retorna hash HMAC-SHA256. Não é reversível; serve para buscar no banco. */
 export function getCpfHash(plainCpf: string): string {
