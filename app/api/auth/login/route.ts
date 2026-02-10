@@ -66,7 +66,8 @@ export async function POST(request: Request) {
 
     return res;
   } catch (err) {
-    console.error("Erro no login:", err);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[auth/login] Erro:", message);
     return NextResponse.json(
       { error: "Erro ao entrar. Tente novamente." },
       { status: 500 }

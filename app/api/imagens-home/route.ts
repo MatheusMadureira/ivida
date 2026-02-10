@@ -34,7 +34,7 @@ export async function GET() {
     }
   }
 
-  const images = [...new Set(allImages)]; // remove duplicatas se ambos prefixos retornaram
+  const images = Array.from(new Set(allImages)); // remove duplicatas se ambos prefixos retornaram
   const res = NextResponse.json({ images });
   res.headers.set(
     "Cache-Control",

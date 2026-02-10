@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRef, useEffect, useState } from "react";
 import { Blobs } from "@/components/Blobs";
 import { SiteHeader } from "@/components/SiteHeader";
+import { UserGreeting } from "@/components/UserGreeting";
 import { EditorialCarousel, type CarouselSlide } from "@/components/EditorialCarousel";
 import { PageTransition } from "@/components/PageTransition";
 
@@ -73,8 +74,9 @@ export default function HomePage() {
         className={`relative z-10 flex flex-col items-center justify-center text-center pt-20 pb-20 sm:pt-24 sm:pb-28 transition-all duration-700 ease-out ${heroReveal.visible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
       >
         <div className={CONTAINER_CLASS}>
+          <UserGreeting />
           <h1 className="text-4xl sm:text-5xl md:text-[2.75rem] font-light text-white tracking-tight leading-[1.12]">
-            Vivendo intensamente o discipulado em amor.
+            Somos uma Igreja que vive o discipulado em amor
           </h1>
           <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
             <Link
