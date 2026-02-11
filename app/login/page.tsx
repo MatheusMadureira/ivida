@@ -1,12 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { PageTransition } from "@/components/PageTransition";
 
-export default function LoginPage() {
+/** Redirecionamento seguro: só aceita path relativo (evita open redirect). */
+function safeRedirectTarget(next: string | null): string {
+  if (!next || typeof next !== "string") return "/area-membros";
+  const path = next.trim();
+  if (!path.startsWith("/") || path.startsWith("//")) return "/area-membros";
+  return path;
+}
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextParam = searchParams.get("next");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,6 +30,7 @@ export default function LoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email: email.trim(), password: senha }),
       });
       const data = await res.json();
@@ -28,7 +39,8 @@ export default function LoginPage() {
         setErro(data.error || "E-mail ou senha incorretos.");
         return;
       }
-      router.push("/home");
+      const destination = safeRedirectTarget(nextParam);
+      window.location.assign(destination);
     } catch {
       setErro("Erro de conexão. Tente novamente.");
     } finally {
@@ -151,5 +163,25 @@ export default function LoginPage() {
       </div>
       </PageTransition>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <main
+          className="min-h-screen w-full flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden"
+          style={{
+            background:
+              "radial-gradient(ellipse 80% 70% at 50% 50%, rgba(45, 44, 44, 0.8) 0%, rgb(27, 26, 26) 50%, rgb(38, 36, 36) 100%)",
+          }}
+        >
+          <p className="text-white/80">Carregando…</p>
+        </main>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

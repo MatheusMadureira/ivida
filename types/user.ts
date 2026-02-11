@@ -5,12 +5,11 @@ export interface ProfileRow {
   email: string;
   cpf_hash: string | null;
   password_hash: string;
-  roles: string[];
   status: "ACTIVE" | "INACTIVE";
   photo_url: string | null;
+  phone: string | null;
   email_verified: boolean;
   last_password_change: string | null;
-  password_reset_code: string | null;
   created_at: string;
   updated_at: string;
   last_login_at: string | null;

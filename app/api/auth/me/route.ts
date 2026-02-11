@@ -19,19 +19,25 @@ export async function GET(request: NextRequest) {
   }
 
   let name: string | null = null;
+  let roles: string[] = [];
+  let photo_url: string | null = null;
+  let phone: string | null = null;
   try {
     const supabase = createServiceRoleClient();
     const { data } = await supabase
-      .from("profiles")
-      .select("name")
+      .from("profiles_with_roles")
+      .select("name, roles, photo_url, phone")
       .eq("id", payload.sub)
       .single();
     name = data?.name ?? null;
+    roles = Array.isArray(data?.roles) ? data.roles : [];
+    photo_url = data?.photo_url ?? null;
+    phone = data?.phone ?? null;
   } catch {
-    // ignora erro de rede/banco; retorna sem name
+    // ignora erro de rede/banco; retorna sem dados extras
   }
 
   return NextResponse.json({
-    user: { id: payload.sub, email: payload.email, name },
+    user: { id: payload.sub, email: payload.email, name, roles, photo_url, phone },
   });
 }

@@ -1,7 +1,13 @@
 "use client";
 
-function handleLogout() {
-  window.location.href = "/api/auth/logout";
+import { useInactivity } from "@/contexts/InactivityContext";
+
+function useLogoutHandler() {
+  const inactivity = useInactivity();
+  return () => {
+    inactivity?.clearTimeoutState();
+    window.location.href = "/api/auth/logout";
+  };
 }
 
 const baseClass =
@@ -9,6 +15,7 @@ const baseClass =
 
 /** Botão de logout para o header (desktop) */
 export function LogoutButton() {
+  const handleLogout = useLogoutHandler();
   return (
     <button
       type="button"
@@ -22,6 +29,7 @@ export function LogoutButton() {
 
 /** Link estilo drawer para o menu mobile */
 export function LogoutButtonDrawer({ onClose }: { onClose: () => void }) {
+  const handleLogout = useLogoutHandler();
   return (
     <button
       type="button"

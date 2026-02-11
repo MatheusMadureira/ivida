@@ -83,7 +83,7 @@ const MINISTERIOS: MinisterioData[] = [
     descricao: "Ministério que reúne as mulheres para comunhão, oração e edificação mútua. Eventos e estudos voltados para essa vivência, com espaço para compartilhar, acolher e crescer juntas. Um lugar onde a identidade em Cristo e o serviço se encontram.",
     verse: "A mulher virtuosa é a coroa do seu marido.",
     verseRef: "Provérbios 12.4",
-    leaders: [{ name: "Dilcineia Drumound" }],
+    leaders: [{ name: "Dilcineia Drumond" }],
   },
   {
     titulo: "Família",
@@ -91,7 +91,7 @@ const MINISTERIOS: MinisterioData[] = [
     descricao: "Espaço para fortalecer laços familiares à luz da Palavra. Encontros e atividades que valorizam o lar e a convivência, com orientação para casais, pais e filhos. O objetivo é que cada família seja um lugar de graça, perdão e testemunho do amor de Deus.",
     verse: "Eu e a minha casa serviremos ao Senhor.",
     verseRef: "Josué 24.15",
-    leaders: [{ name: "André Lourenço" }, { name: "Andressa Droumound" }],
+    leaders: [{ name: "André Nascimento" }, { name: "Andressa Drumond" }],
   },
   {
     titulo: "Mídia",
@@ -99,7 +99,7 @@ const MINISTERIOS: MinisterioData[] = [
     descricao: "Equipe responsável pela divulgação, transmissões e comunicação visual. Leva a mensagem da igreja por meio dos canais digitais, redes sociais e transmissões ao vivo. Cada post, vídeo e arte é uma oportunidade de alcançar vidas e glorificar a Deus.",
     verse: "Anunciai entre as nações a sua glória, entre todos os povos as suas maravilhas.",
     verseRef: "1 Crônicas 16.24",
-    leaders: [{ name: "Andressa Droumound" }],
+    leaders: [{ name: "Andressa Drumond" }],
   },
 ];
 

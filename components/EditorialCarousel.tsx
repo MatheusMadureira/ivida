@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import Image from "next/image";
 
 export type CarouselSlide =
   | { src: string; alt: string; caption?: string }
@@ -236,14 +237,14 @@ export function EditorialCarousel({
                           }
                         }}
                       >
-                        <div className="absolute inset-0 z-0 w-full h-full">
-                          <img
+                        <div className="absolute inset-0 z-0 w-full h-full relative">
+                          <Image
                             key={displaySrc}
                             src={displaySrc}
                             alt={slide.alt}
-                            loading="eager"
-                            className={`w-full h-full object-contain object-center pointer-events-none transition-opacity duration-200 ${status === "loaded" ? "opacity-100" : "opacity-0"}`}
-                            draggable={false}
+                            fill
+                            sizes="100vw"
+                            className={`object-contain object-center pointer-events-none transition-opacity duration-200 ${status === "loaded" ? "opacity-100" : "opacity-0"}`}
                             onLoad={() => handleMobileImageLoad(src)}
                             onError={(e) => handleMobileImageError(src, e)}
                           />
@@ -321,14 +322,15 @@ export function EditorialCarousel({
                               </div>
                             ) : "src" in slide ? (
                               <>
-                                <img
-                                  src={slide.src}
-                                  alt={slide.alt}
-                                  loading="lazy"
-                                  decoding="async"
-                                  className="absolute inset-0 w-full h-full object-cover min-w-0 min-h-0 pointer-events-none"
-                                  draggable={false}
-                                />
+                                <div className="absolute inset-0 w-full h-full relative">
+                                  <Image
+                                    src={slide.src}
+                                    alt={slide.alt}
+                                    fill
+                                    sizes="(max-width: 640px) 100vw, 340px"
+                                    className="object-cover min-w-0 min-h-0 pointer-events-none"
+                                  />
+                                </div>
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" aria-hidden />
                               </>
                             ) : null}

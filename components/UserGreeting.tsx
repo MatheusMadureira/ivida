@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-type MeResponse = { user: { id: string; email: string; name: string | null } | null };
+import { useAuth } from "@/contexts/AuthContext";
 
 /** Extrai o primeiro nome: primeira palavra de full_name ou parte do email antes do @. */
 function getFirstName(name: string | null, email: string): string {
@@ -18,33 +17,23 @@ function getFirstName(name: string | null, email: string): string {
 
 /**
  * Eyebrow text: "Olá, {PrimeiroNome}. Que bom ter você aqui."
- * Só renderiza quando o usuário está logado; usa /api/auth/me.
+ * Só renderiza quando o usuário está logado; usa AuthContext.
  * Sem pill/caixa/fundo; detalhe em vermelho (ponto) antes do texto.
  */
 export function UserGreeting() {
-  const [user, setUser] = useState<MeResponse["user"]>(null);
-  const [done, setDone] = useState(false);
+  const auth = useAuth();
+  const user = auth?.user ?? null;
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    fetch("/api/auth/me", { credentials: "include" })
-      .then((res) => res.json() as Promise<MeResponse>)
-      .then((data) => {
-        setUser(data.user ?? null);
-        setDone(true);
-      })
-      .catch(() => setDone(true));
-  }, []);
-
-  useEffect(() => {
-    if (!done || !user) return;
+    if (!user) return;
     const t = requestAnimationFrame(() => {
       requestAnimationFrame(() => setVisible(true));
     });
     return () => cancelAnimationFrame(t);
-  }, [done, user]);
+  }, [user]);
 
-  if (!done || !user) return null;
+  if (!user) return null;
 
   const firstName = getFirstName(user.name, user.email);
   const firstNameCapitalized =

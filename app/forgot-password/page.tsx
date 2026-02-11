@@ -1,142 +1,43 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PageTransition } from "@/components/PageTransition";
 
-const SENHA_REGRAS = {
-  minLength: 8,
-  temNumero: /\d/,
-  temMaiuscula: /[A-Z]/,
-  temMinuscula: /[a-z]/,
-  temEspecial: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
-};
-
-function validarSenha(senha: string): { ok: boolean; erros: string[] } {
-  const erros: string[] = [];
-  if (senha.length < SENHA_REGRAS.minLength)
-    erros.push(`Mínimo ${SENHA_REGRAS.minLength} caracteres`);
-  if (!SENHA_REGRAS.temNumero.test(senha)) erros.push("Um número");
-  if (!SENHA_REGRAS.temMaiuscula.test(senha)) erros.push("Uma letra maiúscula");
-  if (!SENHA_REGRAS.temMinuscula.test(senha)) erros.push("Uma letra minúscula");
-  if (!SENHA_REGRAS.temEspecial.test(senha))
-    erros.push("Um caractere especial (!@#$%...)");
-  return { ok: erros.length === 0, erros };
-}
-
-function formatarCPF(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 11);
-  return digits
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-}
-
 export default function ForgotPasswordPage() {
-  const router = useRouter();
-  const [cpf, setCpf] = useState("");
   const [email, setEmail] = useState("");
-  const [codigoRestauracao, setCodigoRestauracao] = useState("");
-  const [step, setStep] = useState<1 | 2>(1);
-  const [novaSenha, setNovaSenha] = useState("");
-  const [confirmaNovaSenha, setConfirmaNovaSenha] = useState("");
-  const [erroSenha, setErroSenha] = useState<string[]>([]);
-  const [erroConfirma, setErroConfirma] = useState("");
-  const [tocouSenha, setTocouSenha] = useState(false);
-  const [tocouConfirma, setTocouConfirma] = useState(false);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
-
-  function handleCpfChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setCpf(formatarCPF(e.target.value));
-  }
-
-  async function handleValidar(e: React.FormEvent) {
-    e.preventDefault();
-    setErro("");
-    setLoading(true);
-    try {
-      const res = await fetch("/api/auth/forgot-password/validate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cpf: cpf.replace(/\D/g, ""),
-          email: email.trim(),
-          codigoRestauracao: codigoRestauracao.trim(),
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setErro(data.error || "E-mail, CPF ou código não conferem.");
-        return;
-      }
-      setStep(2);
-    } catch {
-      setErro("Erro de conexão. Tente novamente.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function handleNovaSenhaChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setNovaSenha(e.target.value);
-    setErroSenha(validarSenha(e.target.value).erros);
-  }
-
-  function handleConfirmaChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setConfirmaNovaSenha(e.target.value);
-    setErroConfirma(
-      e.target.value && e.target.value !== novaSenha
-        ? "As senhas não coincidem"
-        : ""
-    );
-  }
-
-  async function handleResetarSenha(e: React.FormEvent) {
-    e.preventDefault();
-    setTocouSenha(true);
-    setTocouConfirma(true);
-    setErro("");
-
-    const { ok, erros } = validarSenha(novaSenha);
-    setErroSenha(erros);
-    const confirmaErro =
-      !confirmaNovaSenha || confirmaNovaSenha !== novaSenha
-        ? "As senhas não coincidem"
-        : "";
-    setErroConfirma(confirmaErro);
-
-    if (!ok || confirmaErro) return;
-
-    setLoading(true);
-    try {
-      const res = await fetch("/api/auth/forgot-password/reset", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim(),
-          codigoRestauracao: codigoRestauracao.trim(),
-          newPassword: novaSenha,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setErro(data.error || "Erro ao alterar senha.");
-        return;
-      }
-      router.push("/login");
-    } catch {
-      setErro("Erro de conexão. Tente novamente.");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const [enviado, setEnviado] = useState(false);
+  const [mensagem, setMensagem] = useState("");
 
   const inputClass =
     "w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/50 focus:outline-none focus:border-ivida-red focus:ring-1 focus:ring-ivida-red transition-colors";
-  const inputErroClass =
-    "border-red-500/60 focus:border-red-500 focus:ring-red-500/50";
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setErro("");
+    setLoading(true);
+    setEnviado(false);
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErro(data.error || "Erro ao enviar. Tente novamente.");
+        return;
+      }
+      setMensagem(data.message || "Se existir uma conta com este e-mail, você receberá um link para redefinir a senha.");
+      setEnviado(true);
+    } catch {
+      setErro("Erro de conexão. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <main
@@ -179,33 +80,27 @@ export default function ForgotPasswordPage() {
           className="w-full rounded-2xl p-10 sm:p-12 animate-card-in opacity-0 bg-white/[0.03] backdrop-blur-md"
           style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.15)" }}
         >
-          {step === 1 ? (
+          <h2 className="text-xl font-medium text-white text-center mb-8">
+            Esqueci a senha
+          </h2>
+
+          {enviado ? (
             <>
-              <h2 className="text-xl font-medium text-white text-center mb-8">
-                Esqueci a senha
-              </h2>
+              <p className="mb-6 text-sm text-white/90 text-center bg-white/5 rounded-xl py-4 px-3">
+                {mensagem}
+              </p>
+              <p className="text-center text-white/70 text-sm">
+                Verifique sua caixa de entrada e o spam. O link expira em algumas horas.
+              </p>
+            </>
+          ) : (
+            <>
               {erro && (
                 <p className="mb-4 text-sm text-red-400 text-center bg-red-500/10 rounded-xl py-2 px-3">
                   {erro}
                 </p>
               )}
-              <form onSubmit={handleValidar} className="space-y-4">
-                <div>
-                  <label htmlFor="cpf" className="sr-only">
-                    CPF
-                  </label>
-                  <input
-                    id="cpf"
-                    type="text"
-                    placeholder="CPF (000.000.000-00)"
-                    value={cpf}
-                    onChange={handleCpfChange}
-                    required
-                    className={inputClass}
-                    autoComplete="off"
-                    maxLength={14}
-                  />
-                </div>
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label htmlFor="email" className="sr-only">
                     E-mail
@@ -221,101 +116,13 @@ export default function ForgotPasswordPage() {
                     autoComplete="email"
                   />
                 </div>
-                <div>
-                  <label htmlFor="codigoRestauracao" className="sr-only">
-                    Código de restauração
-                  </label>
-                  <input
-                    id="codigoRestauracao"
-                    type="text"
-                    placeholder="Código de restauração"
-                    value={codigoRestauracao}
-                    onChange={(e) => setCodigoRestauracao(e.target.value)}
-                    required
-                    className={inputClass}
-                    autoComplete="one-time-code"
-                  />
-                </div>
                 <div className="pt-2">
                   <button
                     type="submit"
                     disabled={loading}
                     className="w-full py-3.5 px-4 rounded-xl text-center text-white font-medium text-[15px] bg-ivida-red hover:bg-ivida-redhover focus:outline-none focus-visible:ring-2 focus-visible:ring-ivida-red focus-visible:ring-offset-2 focus-visible:ring-offset-[#151515] active:scale-[0.99] transition-all duration-200 shadow-[0_2px_12px_rgba(224,32,32,0.25)] hover:shadow-[0_4px_16px_rgba(224,32,32,0.35)] disabled:opacity-60 disabled:pointer-events-none"
                   >
-                    {loading ? "Validando…" : "Continuar"}
-                  </button>
-                </div>
-              </form>
-            </>
-          ) : (
-            <>
-              <h2 className="text-xl font-medium text-white text-center mb-4">
-                Nova senha
-              </h2>
-              <p className="text-white/80 text-sm text-center mb-6">
-                Dados conferidos. Defina uma nova senha.
-              </p>
-              {erro && (
-                <p className="mb-4 text-sm text-red-400 text-center bg-red-500/10 rounded-xl py-2 px-3">
-                  {erro}
-                </p>
-              )}
-              <form onSubmit={handleResetarSenha} className="space-y-4">
-                <div>
-                  <label htmlFor="novaSenha" className="sr-only">
-                    Nova senha
-                  </label>
-                  <input
-                    id="novaSenha"
-                    type="password"
-                    placeholder="Nova senha"
-                    value={novaSenha}
-                    onChange={handleNovaSenhaChange}
-                    onBlur={() => setTocouSenha(true)}
-                    required
-                    className={`${inputClass} ${
-                      tocouSenha && !validarSenha(novaSenha).ok
-                        ? inputErroClass
-                        : ""
-                    }`}
-                    autoComplete="new-password"
-                  />
-                  {tocouSenha && erroSenha.length > 0 && (
-                    <p className="mt-1.5 text-xs text-red-400">
-                      A senha deve ter: {erroSenha.join(", ")}.
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="confirmaNovaSenha" className="sr-only">
-                    Confirmar nova senha
-                  </label>
-                  <input
-                    id="confirmaNovaSenha"
-                    type="password"
-                    placeholder="Confirmar nova senha"
-                    value={confirmaNovaSenha}
-                    onChange={handleConfirmaChange}
-                    onBlur={() => setTocouConfirma(true)}
-                    required
-                    className={`${inputClass} ${
-                      tocouConfirma && erroConfirma ? inputErroClass : ""
-                    }`}
-                    autoComplete="new-password"
-                  />
-                  {tocouConfirma && erroConfirma && (
-                    <p className="mt-1.5 text-xs text-red-400">
-                      {erroConfirma}
-                    </p>
-                  )}
-                </div>
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full py-3.5 px-4 rounded-xl text-center text-white font-medium text-[15px] bg-ivida-red hover:bg-ivida-redhover focus:outline-none focus-visible:ring-2 focus-visible:ring-ivida-red focus-visible:ring-offset-2 focus-visible:ring-offset-[#151515] active:scale-[0.99] transition-all duration-200 shadow-[0_2px_12px_rgba(224,32,32,0.25)] hover:shadow-[0_4px_16px_rgba(224,32,32,0.35)] disabled:opacity-60 disabled:pointer-events-none"
-                  >
-                    {loading ? "Alterando…" : "Alterar senha"}
+                    {loading ? "Enviando…" : "Enviar link para redefinir senha"}
                   </button>
                 </div>
               </form>

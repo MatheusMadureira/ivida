@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { PageTransition } from "@/components/PageTransition";
 
 const SENHA_REGRAS = {
@@ -33,6 +34,7 @@ function formatarCPF(value: string): string {
 }
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [nomeCompleto, setNomeCompleto] = useState("");
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
@@ -44,8 +46,7 @@ export default function RegisterPage() {
   const [tocouConfirma, setTocouConfirma] = useState(false);
   const [loading, setLoading] = useState(false);
   const [erroApi, setErroApi] = useState("");
-  const [resetCode, setResetCode] = useState<string | null>(null);
-  const [copiado, setCopiado] = useState(false);
+  const [contaCriada, setContaCriada] = useState(false);
 
   const resultadoSenha = validarSenha(senha);
   const senhasIguais = senha === confirmaSenha && confirmaSenha.length > 0;
@@ -100,19 +101,13 @@ export default function RegisterPage() {
         setErroApi(data.error || "Erro ao criar conta.");
         return;
       }
-      setResetCode(data.resetCode);
+      setContaCriada(true);
+      setTimeout(() => router.push("/login"), 2000);
     } catch {
       setErroApi("Erro de conexão. Tente novamente.");
     } finally {
       setLoading(false);
     }
-  }
-
-  function copiarCodigo() {
-    if (!resetCode) return;
-    navigator.clipboard.writeText(resetCode);
-    setCopiado(true);
-    setTimeout(() => setCopiado(false), 2000);
   }
 
   const inputClass =
@@ -161,33 +156,18 @@ export default function RegisterPage() {
           className="w-full rounded-2xl p-10 sm:p-12 animate-card-in opacity-0 bg-white/[0.03] backdrop-blur-md"
           style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.15)" }}
         >
-          {resetCode ? (
+          {contaCriada ? (
             <>
               <h2 className="text-xl font-medium text-white text-center mb-4">
                 Conta criada
               </h2>
               <p className="text-white/90 text-center text-sm mb-6">
-                Guarde este código em local seguro. Você precisará dele para recuperar sua senha em &quot;Esqueci a senha&quot;.
+                Redirecionando para o login…
               </p>
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10 mb-6">
-                <p className="text-center text-xs text-white/70 mb-2 uppercase tracking-wider">
-                  Código de restauração
-                </p>
-                <p className="text-center text-2xl font-mono font-medium text-ivida-red tracking-widest select-all">
-                  {resetCode}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={copiarCodigo}
-                className="w-full py-3 px-4 rounded-xl text-center text-white font-medium text-sm bg-white/10 hover:bg-white/15 border border-white/10 transition-colors"
-              >
-                {copiado ? "Copiado!" : "Copiar código"}
-              </button>
-              <p className="mt-6 text-center">
+              <p className="text-center">
                 <Link
                   href="/login"
-                  className="text-sm text-white hover:text-white/90 transition-colors underline-offset-2 hover:underline"
+                  className="text-sm text-white hover:text-white/90 transition-colors underline-offset-2 hover:underline focus:underline"
                 >
                   Ir para o login
                 </Link>
