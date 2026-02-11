@@ -69,7 +69,9 @@ export default function AreaMembrosPage() {
             {user ? (
               <MemberPanel
                 user={user as MemberUser}
-                onPhotoUpdate={(url) => updateUser({ photo_url: url })}
+                onPhotoUpdate={(url) => {
+                  updateUser({ photo_url: url });
+                }}
               />
             ) : null}
           </div>

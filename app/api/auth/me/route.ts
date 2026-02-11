@@ -3,6 +3,9 @@ import type { NextRequest } from "next/server";
 import { getSessionCookieName, verifySessionToken } from "@/lib/session";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 /**
  * GET /api/auth/me — retorna o usuário atual se a sessão for válida (id, email, name).
  * Usado no header (botão Sair) e na Home (saudação personalizada).
@@ -37,7 +40,14 @@ export async function GET(request: NextRequest) {
     // ignora erro de rede/banco; retorna sem dados extras
   }
 
-  return NextResponse.json({
-    user: { id: payload.sub, email: payload.email, name, roles, photo_url, phone },
-  });
+  const noCacheHeaders = {
+    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+    Pragma: "no-cache",
+    Expires: "0",
+  };
+
+  return NextResponse.json(
+    { user: { id: payload.sub, email: payload.email, name, roles, photo_url, phone } },
+    { headers: noCacheHeaders }
+  );
 }

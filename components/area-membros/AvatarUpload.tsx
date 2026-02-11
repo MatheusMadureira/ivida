@@ -1,8 +1,10 @@
 "use client";
 
 import { useRef, useState, useCallback } from "react";
+import imageCompression from "browser-image-compression";
 
 const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB — obrigatório (validado também no backend)
+const TARGET_MAX_SIZE_MB = 0.15; // 150KB — compressor
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 
 export type AvatarUploadProps = {
@@ -26,6 +28,7 @@ export function AvatarUpload({
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [inputKey, setInputKey] = useState(0);
 
   const clearPreview = useCallback(() => {
     if (previewUrlRef.current) {
@@ -60,34 +63,49 @@ export function AvatarUpload({
         return;
       }
 
-      const url = URL.createObjectURL(file);
-      previewUrlRef.current = url;
-      setPreview(url);
       setLoading(true);
       e.target.value = "";
 
+      let fileToUpload = file;
+      try {
+        fileToUpload = await imageCompression(file, {
+          maxSizeMB: TARGET_MAX_SIZE_MB,
+          maxWidthOrHeight: 512,
+          useWebWorker: true,
+          fileType: (file.type as "image/jpeg" | "image/png" | "image/webp") || "image/jpeg",
+        });
+      } catch {
+        // mantém o arquivo original se a compressão falhar
+      }
+
+      const url = URL.createObjectURL(fileToUpload);
+      previewUrlRef.current = url;
+      setPreview(url);
+
+      let data: { url?: string; error?: string } = {};
       try {
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", fileToUpload);
         const res = await fetch("/api/profile/upload-avatar", {
           method: "POST",
           credentials: "include",
           body: formData,
         });
-        const data = await res.json().catch(() => ({}));
-
+        data = await res.json().catch(() => ({}));
         if (!res.ok) {
           setError(data.error ?? "Não foi possível enviar a foto. Tente novamente.");
           return;
         }
         if (data.url) {
           onPhotoUpdate(data.url);
+          setTimeout(() => clearPreview(), 0);
         }
       } catch {
         setError("Erro de conexão. Tente novamente.");
       } finally {
         setLoading(false);
-        clearPreview();
+        if (!data?.url) clearPreview();
+        setInputKey((k) => k + 1);
       }
     },
     [clearPreview, onPhotoUpdate]
@@ -108,6 +126,7 @@ export function AvatarUpload({
         {displayUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
+            key={displayUrl}
             src={displayUrl}
             alt=""
             className="w-full h-full object-cover object-[50%_15%]"
@@ -161,6 +180,7 @@ export function AvatarUpload({
       </button>
 
       <input
+        key={inputKey}
         ref={inputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp"

@@ -44,9 +44,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refetch = useCallback(async () => {
     try {
-      const res = await fetch("/api/auth/me", { credentials: "include" });
+      const res = await fetch("/api/auth/me", {
+        credentials: "include",
+        cache: "no-store",
+      });
       const data = (await res.json()) as MeResponse;
-      setUser(data.user ?? null);
+      const serverUser = data.user ?? null;
+      setUser((prev) => {
+        if (!serverUser) return null;
+        if (!prev) return serverUser;
+        const prevPhoto = prev.photo_url ?? "";
+        const serverPhoto = serverUser.photo_url ?? "";
+        if (prevPhoto.includes("?v=") && serverPhoto !== prevPhoto) {
+          return { ...serverUser, photo_url: prevPhoto };
+        }
+        return serverUser;
+      });
     } catch {
       setUser(null);
     } finally {
@@ -57,10 +70,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
-    fetch("/api/auth/me", { credentials: "include" })
+    fetch("/api/auth/me", { credentials: "include", cache: "no-store" })
       .then((res) => res.json() as Promise<MeResponse>)
       .then((data) => {
-        if (!cancelled) setUser(data.user ?? null);
+        if (cancelled) return;
+        const serverUser = data.user ?? null;
+        setUser((prev) => {
+          if (!serverUser) return null;
+          if (!prev) return serverUser;
+          const prevPhoto = prev.photo_url ?? "";
+          const serverPhoto = serverUser.photo_url ?? "";
+          if (prevPhoto.includes("?v=") && serverPhoto !== prevPhoto) {
+            return { ...serverUser, photo_url: prevPhoto };
+          }
+          return serverUser;
+        });
       })
       .catch(() => {
         if (!cancelled) setUser(null);

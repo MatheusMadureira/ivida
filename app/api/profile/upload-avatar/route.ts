@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { put } from "@vercel/blob";
+import { put, del, list } from "@vercel/blob";
 import { getSessionCookieName, verifySessionToken } from "@/lib/session";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 
@@ -19,7 +19,8 @@ function getExtension(mimetype: string): string {
  * POST /api/profile/upload-avatar
  * Recebe multipart/form-data com campo "file" (imagem).
  * Valida tamanho <= 2MB e tipo (jpeg, png, webp) no servidor.
- * Upload para Vercel Blob (path: profile-images/{userId}/avatar.{ext}), atualiza profiles.photo_url no Supabase.
+ * Upload para Vercel Blob (path único: profile-images/{userId}/avatar-{timestamp}.{ext}),
+ * atualiza profiles.photo_url no Supabase e remove o avatar anterior do Blob.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -68,22 +69,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const ext = getExtension(mimetype);
-    const pathname = `${BLOB_PREFIX}${userId}/avatar.${ext}`;
+    const supabase = createServiceRoleClient();
 
-    const blob = await put(pathname, file, {
+    // 1) Buscar e salvar a URL antiga ANTES do upload (preservada para exclusão do blob após update)
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("photo_url")
+      .eq("id", userId)
+      .single();
+    const oldPhotoUrl = profileData?.photo_url ?? null;
+
+    // 2) Upload do novo avatar (path único)
+    const ext = getExtension(mimetype);
+    const ts = Date.now();
+    const blobPath = `${BLOB_PREFIX}${userId}/avatar-${ts}.${ext}`;
+
+    const blob = await put(blobPath, file, {
       access: "public",
       contentType: mimetype,
       addRandomSuffix: false,
-      // Sobrescrever avatar anterior do mesmo usuário
-      allowOverwrite: true,
     });
 
-    const supabase = createServiceRoleClient();
-    const { error: updateError } = await supabase
+    // 3) Update do Supabase com a URL nova
+    const { data, error: updateError } = await supabase
       .from("profiles")
       .update({ photo_url: blob.url })
-      .eq("id", userId);
+      .eq("id", userId)
+      .select("photo_url")
+      .single();
 
     if (updateError) {
       console.error("[upload-avatar] Erro ao atualizar photo_url no Supabase:", updateError);
@@ -93,7 +106,62 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ url: blob.url });
+    // 4) Deletar o blob antigo usando oldPhotoUrl (apenas após update OK)
+    let deleteStatus: "success" | "skipped" | "error" = "skipped";
+    const canDelete =
+      oldPhotoUrl != null &&
+      oldPhotoUrl.trim() !== "" &&
+      oldPhotoUrl !== blob.url &&
+      oldPhotoUrl.includes("/profile-images/");
+
+    if (canDelete) {
+      try {
+        const old = new URL(oldPhotoUrl);
+        old.search = "";
+        await del(old.toString());
+        deleteStatus = "success";
+      } catch (delErr) {
+        deleteStatus = "error";
+        console.warn("[upload-avatar] Delete blob antigo (apenas log):", delErr);
+      }
+    }
+
+    // MUDANÇA 2: listar prefixo do usuário e apagar todos exceto o blob atual
+    let deletedCount = 0;
+    const userPrefix = `${BLOB_PREFIX}${userId}/`;
+    try {
+      const { blobs } = await list({ prefix: userPrefix, limit: 100 });
+      const currentUrl = blob.url;
+      const toDelete = blobs
+        .filter((b) => b.pathname.startsWith(userPrefix) && b.url !== currentUrl)
+        .map((b) => b.url);
+      if (toDelete.length > 0) {
+        await del(toDelete);
+        deletedCount = toDelete.length;
+      }
+    } catch (listErr) {
+      console.warn("[upload-avatar] List/delete cleanup (apenas log):", listErr);
+    }
+
+    if (process.env.NODE_ENV === "development") {
+      console.info("[upload-avatar]", {
+        userId,
+        oldPhotoUrl,
+        blobPath,
+        "blob.url": blob.url,
+        deleteStatus,
+      });
+    }
+
+    const responseUrl = data?.photo_url ?? blob.url;
+    if (process.env.NODE_ENV === "development") {
+      return NextResponse.json({
+        url: responseUrl,
+        deleteStatus,
+        deletedCount,
+      });
+    }
+    return NextResponse.json({ url: responseUrl });
   } catch (err) {
     console.error("[upload-avatar] Erro:", err);
     return NextResponse.json(

@@ -86,7 +86,9 @@ export default function PerfilPage() {
               <AvatarUpload
                 photoUrl={user.photo_url ?? null}
                 initials={getInitials(user.name, user.email)}
-                onPhotoUpdate={(url) => updateUser({ photo_url: url })}
+                onPhotoUpdate={(url) => {
+                  updateUser({ photo_url: url });
+                }}
                 size={96}
               />
               <div className="flex-1 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-6">
