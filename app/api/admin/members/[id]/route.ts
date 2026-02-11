@@ -10,6 +10,40 @@ const SAFE_SELECT =
 const STATUSES = ["ACTIVE", "INACTIVE"] as const;
 
 /**
+ * GET /api/admin/members/[id] — retorna um membro (somente leitura, somente Admin).
+ */
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const admin = await requireAdmin(_request);
+  if (!admin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { id } = await params;
+  if (!id) {
+    return NextResponse.json({ error: "ID obrigatório." }, { status: 400 });
+  }
+
+  const supabase = createServiceRoleClient();
+  const { data, error } = await supabase
+    .from("profiles_with_roles")
+    .select(SAFE_SELECT)
+    .eq("id", id)
+    .single();
+
+  if (error || !data) {
+    return NextResponse.json(
+      { error: "Perfil não encontrado." },
+      { status: 404 }
+    );
+  }
+
+  return NextResponse.json(data);
+}
+
+/**
  * PATCH /api/admin/members/[id] — atualiza perfil (somente Admin).
  * Body: name?, phone?, roles?, status?
  */

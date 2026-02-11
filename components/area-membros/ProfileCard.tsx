@@ -30,9 +30,11 @@ const cardClass =
 export function ProfileCard({
   user,
   onPhotoUpdate,
+  readOnly = false,
 }: {
   user: MemberUser;
   onPhotoUpdate?: (url: string) => void;
+  readOnly?: boolean;
 }) {
   const inactivity = useInactivity();
   const displayName = user.name?.trim() || user.email;
@@ -52,25 +54,28 @@ export function ProfileCard({
           onPhotoUpdate={onPhotoUpdate ?? (() => {})}
           size={64}
           className="shrink-0"
+          readOnly={readOnly}
         />
         <div className="min-w-0 flex-1">
           <h3 className="text-lg font-medium text-white truncate">{displayName}</h3>
           <p className="text-sm text-white/60 mt-0.5 truncate">{user.email}</p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Link
-              href="/perfil"
-              className="inline-flex items-center justify-center py-2 px-4 rounded-xl text-sm font-medium border border-white/20 text-white/90 hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ivida-red/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212]"
-            >
-              Editar perfil
-            </Link>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="inline-flex items-center justify-center py-2 px-4 rounded-xl text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-focus focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212]"
-            >
-              Sair
-            </button>
-          </div>
+          {!readOnly && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link
+                href="/perfil"
+                className="inline-flex items-center justify-center py-2 px-4 rounded-xl text-sm font-medium border border-white/20 text-white/90 hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ivida-red/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212]"
+              >
+                Editar perfil
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="inline-flex items-center justify-center py-2 px-4 rounded-xl text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-focus focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212]"
+              >
+                Sair
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </article>

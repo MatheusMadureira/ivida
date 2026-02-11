@@ -14,6 +14,8 @@ export type AvatarUploadProps = {
   /** Tamanho do avatar em pixels (quadrado). */
   size?: number;
   className?: string;
+  /** Se true, exibe apenas a foto/iniciais sem botão de alterar. */
+  readOnly?: boolean;
 };
 
 export function AvatarUpload({
@@ -22,6 +24,7 @@ export function AvatarUpload({
   onPhotoUpdate,
   size = 64,
   className = "",
+  readOnly = false,
 }: AvatarUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const previewUrlRef = useRef<string | null>(null);
@@ -29,6 +32,31 @@ export function AvatarUpload({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [inputKey, setInputKey] = useState(0);
+
+  const displayUrl = preview || photoUrl;
+
+  if (readOnly) {
+    return (
+      <div
+        className={`relative shrink-0 rounded-full overflow-hidden flex items-center justify-center bg-white/5 text-white/80 font-medium border border-white/10 ${className}`}
+        style={{ width: size, height: size, fontSize: size * 0.35 }}
+        aria-hidden
+      >
+        {displayUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={displayUrl}
+            alt=""
+            className="w-full h-full object-cover object-[50%_15%]"
+            width={size}
+            height={size}
+          />
+        ) : (
+          initials
+        )}
+      </div>
+    );
+  }
 
   const clearPreview = useCallback(() => {
     if (previewUrlRef.current) {
@@ -110,8 +138,6 @@ export function AvatarUpload({
     },
     [clearPreview, onPhotoUpdate]
   );
-
-  const displayUrl = preview || photoUrl;
 
   return (
     <div className={`relative ${className}`}>

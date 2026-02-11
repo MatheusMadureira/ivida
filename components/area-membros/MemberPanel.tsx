@@ -47,9 +47,11 @@ function getRoleBadge(roles: string[]): string {
 export function MemberPanel({
   user,
   onPhotoUpdate,
+  readOnly = false,
 }: {
   user: MemberUser;
   onPhotoUpdate?: (url: string) => void;
+  readOnly?: boolean;
 }) {
   const firstName = getFirstName(user.name, user.email);
   const greeting =
@@ -77,18 +79,20 @@ export function MemberPanel({
           <span className="inline-flex items-center py-1.5 px-3 rounded-full text-xs font-medium bg-ivida-red/15 border border-ivida-red/30 text-ivida-red">
             {badge}
           </span>
-          <Link
-            href="/perfil"
-            className="inline-flex items-center justify-center py-2 px-4 rounded-xl text-sm font-medium border border-white/20 text-white/90 hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ivida-red/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212]"
-          >
-            Editar perfil
-          </Link>
+          {!readOnly && (
+            <Link
+              href="/perfil"
+              className="inline-flex items-center justify-center py-2 px-4 rounded-xl text-sm font-medium border border-white/20 text-white/90 hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ivida-red/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212]"
+            >
+              Editar perfil
+            </Link>
+          )}
         </div>
       </header>
 
       {/* Grid 2 col desktop, 1 mobile */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <ProfileCard user={user} onPhotoUpdate={onPhotoUpdate} />
+        <ProfileCard user={user} onPhotoUpdate={onPhotoUpdate} readOnly={readOnly} />
         <MinistriesCard ministries={[]} />
         <UpcomingEventsCard />
         <PrayerRequestsCard
@@ -102,7 +106,7 @@ export function MemberPanel({
         )}
       </div>
 
-      {isAdmin && (
+      {isAdmin && !readOnly && (
         <div className="mt-8">
           <Link
             href="/area-membros/admin"

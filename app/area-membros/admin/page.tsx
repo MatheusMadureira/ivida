@@ -241,7 +241,7 @@ export default function AdminPage() {
                       <th className="px-4 py-3 text-sm font-medium text-white/80">
                         Status
                       </th>
-                      <th className="px-4 py-3 text-sm font-medium text-white/80 w-24">
+                      <th className="px-4 py-3 text-sm font-medium text-white/80 min-w-[200px]">
                         Ações
                       </th>
                     </tr>
@@ -274,13 +274,21 @@ export default function AdminPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3">
-                          <button
-                            type="button"
-                            onClick={() => setEditing(m)}
-                            className="text-sm font-medium text-ivida-red hover:text-ivida-redhover focus:outline-none focus-visible:ring-2 focus-visible:ring-ivida-red/50 rounded"
-                          >
-                            Editar
-                          </button>
+                          <div className="flex flex-wrap items-center gap-3">
+                            <Link
+                              href={`/area-membros/admin/membro/${m.id}`}
+                              className="text-sm font-medium text-white/80 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-ivida-red/50 rounded"
+                            >
+                              Visualizar perfil
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => setEditing(m)}
+                              className="text-sm font-medium text-ivida-red hover:text-ivida-redhover focus:outline-none focus-visible:ring-2 focus-visible:ring-ivida-red/50 rounded"
+                            >
+                              Editar
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
